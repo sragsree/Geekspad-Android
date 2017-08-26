@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+    <item
+        android:id="@+id/menu_home"
+        android:title="Profile"
+        android:icon="@android:drawable/ic_menu_crop"
+        />
+
+    <item
+        android:id="@+id/menu_list"
+        android:title="List"
+        android:icon="@android:drawable/ic_dialog_dialer"
+        />
+
+    <item
+        android:id="@+id/menu_map"
+        android:title="Map"
+        android:icon="@android:drawable/ic_dialog_map" />
+
+    <item
+        android:id="@+id/menu_chat"
+        android:title="Chat"
+        android:icon="@android:drawable/sym_action_chat" />
+</menu>

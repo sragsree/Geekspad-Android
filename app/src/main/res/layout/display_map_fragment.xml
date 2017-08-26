@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+        <com.google.android.gms.maps.MapView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/map"
+        tools:context=".MapsActivity"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        map:cameraBearing="112.5"
+        map:cameraTargetLat="32.772399"
+        map:cameraTargetLng="-117.072286"
+        map:cameraTilt="0"
+        map:cameraZoom="5"
+        map:uiCompass="true"
+        map:uiRotateGestures="true"
+        map:uiScrollGestures="true"
+        map:uiTiltGestures="true"
+        map:uiZoomControls="true"
+        map:uiZoomGestures="true"
+        android:layout_weight="0.07"/>
+</RelativeLayout>

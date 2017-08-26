@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.v7.widget.RecyclerView
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/recycler_view_chat"
+        android:paddingTop="10dp"
+        android:paddingBottom="50dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:scrollbars="vertical"/>
+
+    <RelativeLayout
+        android:id="@+id/divider"
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:layout_above="@+id/relSendMessage" />
+
+    <RelativeLayout
+        android:id="@+id/relSendMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:background="@android:color/white"
+        android:paddingLeft="10dp"
+        android:layout_alignParentBottom="true">
+
+
+        <EditText
+            android:layout_marginBottom="-4dp"
+            android:id="@+id/messageBodyField"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Type your message here"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:layout_marginRight="10dp"
+            android:layout_alignTop="@+id/sendButton"
+            android:background="@android:color/white"
+            android:layout_alignBottom="@+id/sendButton"
+            android:layout_toLeftOf="@+id/sendButton"/>
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_margin="4dp"
+            android:text="send"
+            android:background="@android:color/holo_blue_light" />
+    </RelativeLayout>
+</RelativeLayout>

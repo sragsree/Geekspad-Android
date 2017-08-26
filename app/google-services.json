@@ -1,0 +1,37 @@
+{
+  "project_info": {
+    "project_number": "67676739612",
+    "firebase_url": "https://geekspad-fc2c6.firebaseio.com",
+    "project_id": "geekspad-fc2c6",
+    "storage_bucket": "geekspad-fc2c6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67676739612:android:d81ae9532db07135",
+        "android_client_info": {
+          "package_name": "com.example.sreer.geekspad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAGs6ifa5SYfJ9SCCgJlM8gRKx3jnVv90"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

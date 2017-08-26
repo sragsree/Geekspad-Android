@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="skills">
+        <item>Select Skills(None)</item>
+        <item>Java</item>
+        <item>Python</item>
+        <item>C</item>
+        <item>C++</item>
+        <item>Scala</item>
+        <item>HTML</item>
+        <item>CSS</item>
+        <item>JavaScript</item>
+        <item>NodeJS</item>
+        <item>Bootstrap</item>
+        <item>AngularJS</item>
+        <item>Oracle</item>
+        <item>MongoDB</item>
+        <item>Android</item>
+        <item>IOS</item>
+        <item>Big Data Tools</item>
+        <item>Machine Learning</item>
+    </string-array>
+</resources>

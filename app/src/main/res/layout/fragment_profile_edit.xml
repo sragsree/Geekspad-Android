@@ -1,0 +1,144 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.sreer.geekspad.ui.fragment.ProfileEditFragment">
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/signup_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:text="@string/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_email" />
+
+        <EditText
+            android:id="@+id/EditText_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress" />
+
+        <TextView
+            android:text="@string/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_password" />
+
+        <EditText
+            android:id="@+id/EditText_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/password"
+            android:inputType="textPassword" />
+
+        <TextView
+            android:text="@string/phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_phone" />
+
+        <EditText
+            android:id="@+id/EditText_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/phone"
+            android:inputType="phone" />
+
+        <TextView
+            android:text="@string/gender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_gender" />
+
+        <EditText
+            android:id="@+id/EditText_gender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/gender"
+            android:inputType="textCapWords" />
+
+        <TextView
+            android:text="@string/birthdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_birthdate" />
+
+        <EditText
+            android:id="@+id/EditText_birthdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/birthdate"
+            android:inputType="date" />
+
+        <TextView
+            android:text="@string/country"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_country" />
+
+        <Spinner
+            android:id="@+id/Spinner_country"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="20dp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:text="@string/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_state" />
+
+        <Spinner
+            android:id="@+id/Spinner_state"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="20dp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:text="@string/city"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_city" />
+
+        <EditText
+            android:id="@+id/EditText_city"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:focusableInTouchMode="true"
+            android:hint="@string/city"
+            android:inputType="textCapWords" />
+
+
+    </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>
