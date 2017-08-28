@@ -1,6 +1,6 @@
 # Geekspad
 
-An android based application for tech people to connect, organise meetups and other social events. What makes it really cool is that people can rate other people on their technical skills with reference to their interactions with the person at some tech evenst or some other means. Additionally it packs in the feature for recruiters to find the right person for a position. Push Notifications and messaging are other add-on built into the app.
+An android based application for tech geeks to connect, organize meetups and other social events. What makes it really cool is that people can rate other people on their technical skills with reference to their interactions with the person at some tech event or some other means. Additionally it packs in the feature for recruiters to find the right person for a position. Push notifications and messaging are other add-on features built into the app.
 On the implementation side the following design patterns are used:
 
   - Singleton Pattern
