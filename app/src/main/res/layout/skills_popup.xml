@@ -48,7 +48,7 @@
         android:layout_marginRight="10dp"
         android:layout_marginBottom="5dp">
 
-        <android.support.v7.widget.AppCompatTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Skills"
@@ -75,14 +75,14 @@
         android:layout_marginRight="10dp"
         android:layout_marginBottom="5dp">
 
-        <android.support.v7.widget.AppCompatTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Proficiency Level"
             android:textStyle="bold"
             android:layout_weight="2"/>
         <!-- label for  Skills-->
-            <android.support.v7.widget.AppCompatTextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/proficiency"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -93,7 +93,7 @@
 
     </LinearLayout>
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
@@ -104,9 +104,9 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:max="100" />
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
@@ -117,6 +117,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/add_skills_button"
             android:layout_gravity="center_horizontal"/>
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

@@ -15,6 +15,9 @@ import java.util.Map;
 
 public class User implements Parcelable {
 
+    private String uid;
+    public String getUid() { return uid; }
+    public void setUid(String uid) { this.uid = uid; }
     private String firstname;
     private String lastname;
     private String email;
@@ -61,6 +64,8 @@ public class User implements Parcelable {
         this.city = data[7];
         this.latitude = data[8];
         this.longitude = data[9];
+        this.uid = in.readString();
+        this.skills = (Map<String, Skill>) in.readSerializable();
     }
 
     public String getFirstname() {
@@ -143,11 +148,12 @@ public class User implements Parcelable {
         this.longitude = longitude;
     }
 
-    public Map getSkills() {
+    public Map<String, Skill> getSkills() {
+        if (skills == null) skills = new LinkedHashMap<>();
         return skills;
     }
 
-    public void setSkills(Map skills) {
+    public void setSkills(Map<String, Skill> skills) {
         this.skills = skills;
     }
 
@@ -183,6 +189,8 @@ public class User implements Parcelable {
                 this.city,
                 this.latitude,
                 this.longitude});
+        dest.writeString(uid);
+        dest.writeSerializable(new LinkedHashMap<>(getSkills()));
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -205,7 +213,7 @@ public class User implements Parcelable {
     }
 
     public Skill getSkill(String skill){
-        return skills.get(skill);
+        return getSkills().get(skill);
     }
 
 }

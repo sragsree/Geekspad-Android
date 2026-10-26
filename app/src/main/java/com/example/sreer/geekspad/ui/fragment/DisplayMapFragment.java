@@ -8,9 +8,9 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,6 +56,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
     private LayoutInflater inflater;
 
     private GoogleMap mMap;
+    private MapView mapView;
+    private boolean configured;
 
     public GoogleMap getMap() {
         return mMap;
@@ -70,7 +72,9 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
     public void onViewCreated(View view, Bundle bundle) {
         super.onViewCreated(view, bundle);
        fireBaseHelper = new FireBaseHelper(DisplayMapFragment.this);
+        if (!configured) return;
         MapView map = (MapView) view.findViewById(R.id.map);
+        mapView = map;
         map.onCreate(bundle);
         map.onResume();
         map.getMapAsync(this);
@@ -81,6 +85,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        configured = !getString(R.string.google_maps_key).isEmpty();
+        if (!configured) { android.widget.TextView notice = new android.widget.TextView(requireContext()); notice.setPadding(24,24,24,24); notice.setText("Google Maps needs your own restricted Android API key. Profiles and location filters work in List. See README for configuration; this is not a simulated map."); return notice; }
         View view = inflater.inflate(R.layout.display_map_fragment, container, false);
         this.inflater = inflater;
         return view;
@@ -92,21 +98,17 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
         mMap = googleMap;
 
         fireBaseHelper.getAllUsers();
+    }
 
-        if (ActivityCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-           }
-        }
+    @Override public void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }
+    @Override public void onPause() { if (mapView != null) mapView.onPause(); super.onPause(); }
+    @Override public void onDestroyView() { if (mapView != null) { mapView.onDestroy(); mapView = null; } super.onDestroyView(); }
+    @Override public void onLowMemory() { super.onLowMemory(); if (mapView != null) mapView.onLowMemory(); }
 
     public void addMarker(User user){
-        LatLng point = new LatLng(parseDouble(user.getLatitude()),parseDouble(user.getLongitude()));
+        if (user.getLatitude() == null || user.getLongitude() == null) return;
+        LatLng point;
+        try { point = new LatLng(parseDouble(user.getLatitude()),parseDouble(user.getLongitude())); } catch (NumberFormatException invalid) { return; }
         MarkerOptions marker = new MarkerOptions() .position(point);
         mMap.addMarker(marker.title(user.getEmail()));
         CameraUpdate newLocation = CameraUpdateFactory.newLatLngZoom(point, 6);
@@ -123,7 +125,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
                 User user = new User();
                 user.setEmail(marker.getTitle());
                 Intent intent = new Intent(getActivity(), ProfileActivity.class);
-                intent.putExtra("email",user.cleanEmailAddress());
+                intent.putExtra("email",user.getEmail());
                 startActivity(intent);
             }
         });
@@ -133,7 +135,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback,F
     }
 
     public void applyFilter(String country, String state, String skill, String skill_level){
-         fireBaseHelper.getFilteredUsers(country,state,skill,skill_level);
+         if (configured && fireBaseHelper != null) fireBaseHelper.getFilteredUsers(country,state,skill,skill_level);
     }
 
     @Override

@@ -1,165 +1,114 @@
 package com.example.sreer.geekspad.chat;
 
 import android.content.Context;
-import android.util.Log;
-
+import com.example.sreer.geekspad.db.FireBaseHelper;
 import com.example.sreer.geekspad.model.Chat;
-import com.example.sreer.geekspad.utils.Constants;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.sreer.geekspad.model.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.*;
+import java.util.*;
 
-
-/**
- * Created by kalirajkalimuthu on 4/8/17.
- */
-
+/** One deterministic UID room, acknowledged writes, private reads, and detachable listeners. */
 public class ChatInteractor implements ChatContract.Interactor {
-    private static final String TAG = "ChatInteractor";
+  private final ChatContract.OnSendMessageListener sends;
+  private final ChatContract.OnGetMessagesListener reads;
+  private DatabaseReference room;
+  private Query messages;
+  private ChildEventListener listener;
+  private String peerUid;
+  private boolean closed;
 
-    private ChatContract.OnSendMessageListener mOnSendMessageListener;
-    private ChatContract.OnGetMessagesListener mOnGetMessagesListener;
+  public ChatInteractor(
+      ChatContract.OnSendMessageListener sends, ChatContract.OnGetMessagesListener reads) {
+    this.sends = sends;
+    this.reads = reads;
+  }
 
-    public ChatInteractor(ChatContract.OnSendMessageListener onSendMessageListener) {
-        this.mOnSendMessageListener = onSendMessageListener;
+  public static String roomId(String a, String b) {
+    return a.compareTo(b) < 0 ? a + "_" + b : b + "_" + a;
+  }
+
+  @Override
+  public void getMessageFromFirebaseUser(String sender, String receiver) {
+    closed = false;
+    new FireBaseHelper(
+            new FireBaseHelper.GetUserByMailInterface() {
+              @Override
+              public void onSuccessGetUserByMail(User peer) {
+                if (closed) return;
+                peerUid = peer.getUid();
+                String current = FirebaseAuth.getInstance().getUid();
+                room =
+                    com.example.sreer.geekspad.db.Backend.database()
+                        .getReference("rooms")
+                        .child(roomId(current, peerUid));
+                reads.onConversationReady();
+                messages = room.child("messages").orderByChild("timestamp").limitToLast(200);
+                listener =
+                    messages.addChildEventListener(
+                        new ChildEventListener() {
+                          @Override
+                          public void onChildAdded(DataSnapshot snapshot, String previous) {
+                            Chat chat = snapshot.getValue(Chat.class);
+                            if (!closed && chat != null) reads.onGetMessagesSuccess(chat);
+                          }
+
+                          @Override
+                          public void onChildChanged(DataSnapshot s, String p) {}
+
+                          @Override
+                          public void onChildRemoved(DataSnapshot s) {}
+
+                          @Override
+                          public void onChildMoved(DataSnapshot s, String p) {}
+
+                          @Override
+                          public void onCancelled(DatabaseError error) {
+                            if (!closed)
+                              reads.onGetMessagesFailure(
+                                  "Unable to load messages: " + error.getMessage());
+                          }
+                        });
+              }
+
+              @Override
+              public void onFailureGetUserByMail() {
+                if (!closed) reads.onGetMessagesFailure("Recipient unavailable");
+              }
+            })
+        .getUserByMail(receiver);
+  }
+
+  @Override
+  public void sendMessageToFirebaseUser(Context context, Chat chat) {
+    if (room == null || peerUid == null || closed) {
+      sends.onSendMessageFailure("Conversation is still loading");
+      return;
     }
-
-    public ChatInteractor(ChatContract.OnGetMessagesListener onGetMessagesListener) {
-        this.mOnGetMessagesListener = onGetMessagesListener;
+    if (chat.message == null || chat.message.trim().isEmpty() || chat.message.length() > 4000) {
+      sends.onSendMessageFailure("Use 1–4000 characters");
+      return;
     }
+    String uid = FirebaseAuth.getInstance().getUid();
+    chat.senderUid = uid;
+    chat.receiverUid = peerUid;
+    Map<String, Object> changes = new HashMap<>();
+    changes.put("first", uid.compareTo(peerUid) < 0 ? uid : peerUid);
+    changes.put("second", uid.compareTo(peerUid) < 0 ? peerUid : uid);
+    changes.put("members/" + uid, true);
+    changes.put("members/" + peerUid, true);
+    changes.put("messages/" + room.child("messages").push().getKey(), chat);
+    room.updateChildren(changes)
+        .addOnCompleteListener(
+            task -> {
+              if (closed) return;
+              if (task.isSuccessful()) sends.onSendMessageSuccess();
+              else sends.onSendMessageFailure("Message was not saved. Retry when connected.");
+            });
+  }
 
-    public ChatInteractor(ChatContract.OnSendMessageListener onSendMessageListener,
-                          ChatContract.OnGetMessagesListener onGetMessagesListener) {
-        this.mOnSendMessageListener = onSendMessageListener;
-        this.mOnGetMessagesListener = onGetMessagesListener;
-    }
-
-    @Override
-    public void sendMessageToFirebaseUser(final Context context, final Chat chat) {
-        final String room_type_1 = chat.senderMail.replaceAll("\\.", "-") + "_" + chat.receiverMail.replaceAll("\\.", "-");
-        final String room_type_2 = chat.receiverMail.replaceAll("\\.", "-") + "_" + chat.senderMail.replaceAll("\\.", "-");
-
-        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-
-        databaseReference.child(Constants.ARG_CHAT_ROOMS).getRef().addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(room_type_1)) {
-                    Log.e(TAG, "sendMessageToFirebaseUser: " + room_type_1 + " exists");
-                    databaseReference.child(Constants.ARG_CHAT_ROOMS).child(room_type_1).child(String.valueOf(chat.timestamp)).setValue(chat);
-                } else if (dataSnapshot.hasChild(room_type_2)) {
-                    Log.e(TAG, "sendMessageToFirebaseUser: " + room_type_2 + " exists");
-                    databaseReference.child(Constants.ARG_CHAT_ROOMS).child(room_type_2).child(String.valueOf(chat.timestamp)).setValue(chat);
-                } else {
-                    Log.e(TAG, "sendMessageToFirebaseUser: success");
-                    databaseReference.child(Constants.ARG_CHAT_ROOMS).child(room_type_1).child(String.valueOf(chat.timestamp)).setValue(chat);
-                    getMessageFromFirebaseUser(chat.senderMail.replaceAll("\\.", "-"), chat.receiverMail.replaceAll("\\.", "-"));
-                }
-                // send push notification to the receiver
-               /* sendPushNotificationToReceiver(chat.sender,
-                        chat.message,
-                        chat.senderUid,
-                        new SharedPrefUtil(context).getString(Constants.ARG_FIREBASE_TOKEN),
-                        receiverFirebaseToken); */
-                mOnSendMessageListener.onSendMessageSuccess();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                mOnSendMessageListener.onSendMessageFailure("Unable to send message: " + databaseError.getMessage());
-            }
-        });
-    }
-
-    @Override
-    public void getMessageFromFirebaseUser(String senderEmail, String receiverEmail) {
-        final String room_type_1 = senderEmail.replaceAll("\\.", "-") + "_" + receiverEmail.replaceAll("\\.", "-");
-        final String room_type_2 = receiverEmail.replaceAll("\\.", "-") + "_" + senderEmail.replaceAll("\\.", "-");
-
-        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-
-        databaseReference.child(Constants.ARG_CHAT_ROOMS).getRef().addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(room_type_1)) {
-                    Log.e(TAG, "getMessageFromFirebaseUser: " + room_type_1 + " exists");
-                    FirebaseDatabase.getInstance()
-                            .getReference()
-                            .child(Constants.ARG_CHAT_ROOMS)
-                            .child(room_type_1).addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            Chat chat = dataSnapshot.getValue(Chat.class);
-                            mOnGetMessagesListener.onGetMessagesSuccess(chat);
-                        }
-
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            mOnGetMessagesListener.onGetMessagesFailure("Unable to get message: " + databaseError.getMessage());
-                        }
-                    });
-                } else if (dataSnapshot.hasChild(room_type_2)) {
-                    Log.e(TAG, "getMessageFromFirebaseUser: " + room_type_2 + " exists");
-                    FirebaseDatabase.getInstance()
-                            .getReference()
-                            .child(Constants.ARG_CHAT_ROOMS)
-                            .child(room_type_2).addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            Chat chat = dataSnapshot.getValue(Chat.class);
-                            mOnGetMessagesListener.onGetMessagesSuccess(chat);
-                        }
-
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            mOnGetMessagesListener.onGetMessagesFailure("Unable to get message: " + databaseError.getMessage());
-                        }
-                    });
-                } else {
-                    Log.e(TAG, "getMessageFromFirebaseUser: no such room available");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                mOnGetMessagesListener.onGetMessagesFailure("Unable to get message: " + databaseError.getMessage());
-            }
-        });
-
-    }
-
-
+  public void close() {
+    closed = true;
+    if (listener != null && messages != null) messages.removeEventListener(listener);
+  }
 }

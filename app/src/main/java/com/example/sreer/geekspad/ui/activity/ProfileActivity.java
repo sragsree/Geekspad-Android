@@ -1,9 +1,9 @@
 package com.example.sreer.geekspad.ui.activity;
 
 import android.content.Intent;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.example.sreer.geekspad.R;
@@ -27,13 +27,5 @@ public class ProfileActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-    @Override
-    public void onBackPressed() {
-        if(data == null) {
-            startActivity(new Intent(this, LoginActivity.class)); //Go back to home page
-            finish();
-        }
-        else
-            finish();
-    }
+
 }

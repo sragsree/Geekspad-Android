@@ -3,11 +3,11 @@ package com.example.sreer.geekspad.ui.fragment;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,6 +46,7 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
     private ChatPresenter mChatPresenter;
 
     private Button mSendButton;
+    private boolean conversationReady;
 
     private String currentUser;
     private String currentUserMail;
@@ -65,11 +66,17 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
     @Override
     public void onStart() {
         super.onStart();
+        if (mChatPresenter != null) {
+            mChatRecyclerAdapter = new ChatRecyclerAdapter(new ArrayList<Chat>());
+            mRecyclerViewChat.setAdapter(mChatRecyclerAdapter);
+            mChatPresenter.getMessage(FirebaseAuth.getInstance().getCurrentUser().getEmail(), getArguments().getString(Constants.ARG_RECEIVER_MAIL));
+        }
 
     }
 
     @Override
     public void onStop() {
+        if (mChatPresenter != null) mChatPresenter.close();
         super.onStop();
 
     }
@@ -86,6 +93,7 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
         mRecyclerViewChat = (RecyclerView) view.findViewById(R.id.recycler_view_chat);
         mETxtMessage = (EditText) view.findViewById(R.id.messageBodyField);
         mSendButton = (Button) view.findViewById(R.id.sendButton);
+        mSendButton.setEnabled(false);
     }
 
     @Override
@@ -101,8 +109,7 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
         mETxtMessage.setOnEditorActionListener(this);
 
         mChatPresenter = new ChatPresenter(this);
-        mChatPresenter.getMessage(FirebaseAuth.getInstance().getCurrentUser().getEmail(),
-                getArguments().getString(Constants.ARG_RECEIVER_MAIL));
+
         mSendButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -131,6 +138,7 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
 
     private void sendMessage() {
         String message = mETxtMessage.getText().toString().trim();
+        if (currentUserMail == null) { Toast.makeText(getActivity(), "Profile still loading", Toast.LENGTH_SHORT).show(); return; }
         if(message.length() <=0 )
             return;
         String receiver = getArguments().getString(Constants.ARG_RECEIVER);
@@ -170,10 +178,13 @@ public class ChatFragment extends Fragment implements ChatContract.View, TextVie
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
+    @Override public void onConversationReady() { conversationReady = true; mSendButton.setEnabled(currentUserMail != null); }
+
     @Override
     public void onSuccessGetUserByMail(User user) {
         currentUser = user.getFirstname();
         currentUserMail = user.getEmail();
+        mSendButton.setEnabled(conversationReady);
     }
 
     @Override

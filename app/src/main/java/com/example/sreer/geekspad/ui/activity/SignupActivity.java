@@ -4,7 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -132,7 +132,7 @@ public class SignupActivity extends AppCompatActivity {
     public boolean isValidEmail(){
         String email = mEmail.getText().toString().trim();
         String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
-        return email.matches(emailPattern) && email.length() > 0;
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
 
     }
 
@@ -146,7 +146,12 @@ public class SignupActivity extends AppCompatActivity {
         skillsView.putExtra("email",user.getEmail());
         skillsView.putExtra("password",mPassword.getText().toString());
         skillsView.putExtra("ForEdit",false);
-        startActivity(skillsView);
+        mAddSkillButton.setEnabled(false);
+        new Thread(() -> {
+            LatLng location = AppUtil.getUserLocation(getApplicationContext(), user.getCity()+", "+user.getState()+", "+user.getCountry(), 1);
+            if (location != null) { user.setLatitude(String.valueOf(location.latitude)); user.setLongitude(String.valueOf(location.longitude)); }
+            runOnUiThread(() -> { mAddSkillButton.setEnabled(true); skillsView.putExtra("user", user); startActivity(skillsView); });
+        }).start();
     }
 
     public boolean ValidateFields(){
@@ -231,6 +236,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         Log.i("rew", "Back to Home - " + requestCode+ " " +resultCode);
 
         if (requestCode == 1 && resultCode == RESULT_OK){
@@ -253,8 +259,9 @@ public class SignupActivity extends AppCompatActivity {
         String country = mCountry.getSelectedItem().toString();
         states.clear();
         states.add("Select State(None)");
-        if(!country.contains("Select"))
-        states.addAll(AppUtil.getStates(this,country));
+        if(!country.contains("Select")) {
+            states.addAll(AppUtil.getStates(this,country));
+        }
         ArrayAdapter<String> statesAdapter=new ArrayAdapter<String>(this, R.layout.spinner_item, states);
         statesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mState.setAdapter(statesAdapter);
@@ -316,9 +323,7 @@ public class SignupActivity extends AppCompatActivity {
             if (mCity.getText().toString().length() > 0)
                 user.setCity(mCity.getText().toString());
 
-            LatLng location = AppUtil.getUserLocation(this.getApplicationContext(), user.getCity() + ", " + user.getState() + ", " + user.getCountry(), 3);
-            user.setLatitude(String.valueOf(location.latitude));
-            user.setLongitude(String.valueOf(location.longitude));
+
         }
         return user;
     }

@@ -40,20 +40,21 @@ public class AppUtil {
 
     public static  LatLng getUserLocation(Context context, String address, int args) {
 
-        LatLng location = new LatLng(0, 0);
+        LatLng location = null;
         Double latitude = null, longitude = null;
 
+        if (com.example.sreer.geekspad.BuildConfig.USE_EMULATORS) return null;
         Geocoder locator = new Geocoder(context);
         try {
             List<Address> positions =
                     locator.getFromLocationName(address, args);
-            if (positions.size() > 0) {
+            if (positions != null && positions.size() > 0) {
                 Address position = positions.get(0);
                 if (position.hasLatitude())
                     latitude = position.getLatitude();
                 if (position.hasLongitude())
                     longitude = position.getLongitude();
-                location = new LatLng(latitude, longitude);
+                if (latitude != null && longitude != null) location = new LatLng(latitude, longitude);
             }
 
         } catch (Exception error) {

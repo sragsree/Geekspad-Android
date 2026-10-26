@@ -24,4 +24,5 @@
         android:id="@+id/menu_chat"
         android:title="Chat"
         android:icon="@android:drawable/sym_action_chat" />
+    <item android:id="@+id/menu_events" android:title="Events" android:icon="@android:drawable/ic_menu_today" />
 </menu>

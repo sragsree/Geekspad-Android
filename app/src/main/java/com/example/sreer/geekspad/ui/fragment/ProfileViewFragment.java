@@ -5,9 +5,9 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +37,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 
-public class ProfileViewFragment extends Fragment {
+public class ProfileViewFragment extends Fragment implements FireBaseHelper.GetUserByMailInterface {
     private TextView mProfileLine1, mProfileLine2, mProfileLine3;
     private ImageView mEditIcon, mPhoneIcon , mChatIcon;
     private FirebaseAuth mAuth;
@@ -65,7 +65,7 @@ public class ProfileViewFragment extends Fragment {
         mProfileLine3 = (TextView) view.findViewById(R.id.TextView_line3);
         mAuth = FirebaseAuth.getInstance();
         mEditIcon = (ImageView) view.findViewById(R.id.imageView_edit_icon);
-        mUserRefDatabase = FirebaseDatabase.getInstance().getReference().child("users");
+        mUserRefDatabase = com.example.sreer.geekspad.db.Backend.database().getReference().child("users");
         mProgress = new ProgressDialog(getActivity());
         mSkills = (RecyclerView) view.findViewById(R.id.recycler_profile_skills);
         mPhoneIcon = (ImageView) view.findViewById(R.id.imageView_phone_icon);
@@ -90,39 +90,41 @@ public class ProfileViewFragment extends Fragment {
     }
 
     public void getUserInfo() {
-        User user = new User();
-        if(isView){
-            user.setEmail(emailKey);
-        }
-        else if (mAuth.getCurrentUser() != null) {
-            user.setEmail(mAuth.getCurrentUser().getEmail());
-        }
-        FirebaseDatabase.getInstance().getReference()
-                .child("users")
-                .child(user.cleanEmailAddress())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getValue() != null) {
-                            User user = FireBaseHelper.getUserFromSnapShot(dataSnapshot);
-                            mProfileLine1.setText(user.getFirstname()+" "+user.getLastname());
-                            mProfileLine2.setText("Lives in "+user.getCity()+", "+user.getState()+", "+user.getCountry());
-                            mProfileLine3.setText("Email: "+user.getEmail());
-                            phone = user.getPhone();
-                            displaySkills(user);
-                            if(phone == null)
-                                mPhoneIcon.setVisibility(View.INVISIBLE);
-                            profileOwner = user;
-                            mProgress.dismiss();
-                        }
-                    }
+        String email = isView ? emailKey : mAuth.getCurrentUser().getEmail();
+        new FireBaseHelper(this).getUserByMail(email);
+    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(getActivity(),"Loading Failed",Toast.LENGTH_SHORT);
-                        mProgress.dismiss();
-                    }
-                });
+    @Override public void onSuccessGetUserByMail(User user) {
+        if (!isAdded()) return;
+        profileOwner = user;
+        mProfileLine1.setText(user.getFirstname() + " " + user.getLastname());
+        mProfileLine2.setText("Lives in " + user.getCity() + ", " + user.getState() + ", " + user.getCountry());
+        mProfileLine3.setText("Email: " + user.getEmail());
+        phone = user.getPhone();
+        displaySkills(user);
+        if (phone == null || phone.isEmpty()) mPhoneIcon.setVisibility(View.INVISIBLE);
+        mProgress.dismiss();
+        Button ratings = getView().findViewWithTag("peer-ratings");
+        if (ratings == null) {
+            ratings = new Button(requireContext());
+            ratings.setTag("peer-ratings");
+            ratings.setText("Peer skill ratings");
+            android.widget.RelativeLayout.LayoutParams params = new android.widget.RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.addRule(android.widget.RelativeLayout.BELOW, R.id.recycler_profile_skills);
+            ((ViewGroup)mSkills.getParent()).addView(ratings, params);
+        }
+        ratings.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), com.example.sreer.geekspad.ui.activity.RatingsActivity.class);
+            intent.putExtra("uid", user.getUid());
+            intent.putExtra("name", user.getFirstname());
+            startActivity(intent);
+        });
+    }
+
+    @Override public void onFailureGetUserByMail() {
+        if (!isAdded()) return;
+        mProgress.dismiss();
+        Toast.makeText(requireContext(), "Profile not found or backend unavailable", Toast.LENGTH_LONG).show();
     }
 
     public void editProfile(){
@@ -171,6 +173,7 @@ public class ProfileViewFragment extends Fragment {
         mChatIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (profileOwner == null) return;
                 Intent intent = new Intent(getActivity(), ChatActivity.class);
                 intent.putExtra(Constants.ARG_RECEIVER, profileOwner.getFirstname()+" "+profileOwner.getLastname());
                 intent.putExtra(Constants.ARG_RECEIVER_MAIL,profileOwner.getEmail());

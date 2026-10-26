@@ -1,0 +1,2 @@
+# Preserve the historical README byte-for-byte, including its original trailing spaces.
+docs/README-original.md -text -whitespace

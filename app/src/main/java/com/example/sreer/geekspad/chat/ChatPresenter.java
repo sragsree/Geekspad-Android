@@ -19,6 +19,10 @@ public class ChatPresenter implements ChatContract.Presenter, ChatContract.OnSen
         mChatInteractor = new ChatInteractor(this, this);
     }
 
+    @Override public void onConversationReady() { mView.onConversationReady(); }
+
+    public void close() { mChatInteractor.close(); }
+
     @Override
     public void sendMessage(Context context, Chat chat) {
         mChatInteractor.sendMessageToFirebaseUser(context, chat);

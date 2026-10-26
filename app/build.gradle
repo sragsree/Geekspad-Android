@@ -1,50 +1,52 @@
-apply plugin: 'com.android.application'
+plugins { id 'com.android.application' }
+
+def value = { key, fallback -> providers.gradleProperty(key).getOrElse(fallback) }
+def quoted = { s -> '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"' }
+if (value('useEmulators', 'true') == 'false') {
+    ['firebaseProject', 'firebaseAppId', 'firebaseApiKey', 'firebaseUrl', 'firebaseSenderId'].each { key ->
+        if (!providers.gradleProperty(key).isPresent()) throw new GradleException("Hosted builds require -P${key}; see README.")
+    }
+}
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    namespace 'com.example.sreer.geekspad'
+    compileSdk 35
     defaultConfig {
-        applicationId "com.example.sreer.geekspad"
-        minSdkVersion 19
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        applicationId 'com.example.sreer.geekspad'
+        minSdk 23
+        targetSdk 34
+        versionCode 2
+        versionName '2.0'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        buildConfigField 'String', 'FIREBASE_PROJECT', quoted(value('firebaseProject', 'demo-geekspad'))
+        buildConfigField 'String', 'FIREBASE_APP_ID', quoted(value('firebaseAppId', '1:123456789:android:geekspaddemo'))
+        buildConfigField 'String', 'FIREBASE_API_KEY', quoted(value('firebaseApiKey', 'demo-emulator-only-key'))
+        buildConfigField 'String', 'FIREBASE_URL', quoted(value('firebaseUrl', 'https://demo-geekspad-default-rtdb.firebaseio.com'))
+        buildConfigField 'String', 'FIREBASE_SENDER_ID', quoted(value('firebaseSenderId', '123456789'))
+        buildConfigField 'String', 'EMULATOR_HOST', quoted(value('emulatorHost', '10.0.2.2'))
+        buildConfigField 'boolean', 'USE_EMULATORS', value('useEmulators', 'true')
+        resValue 'string', 'google_maps_key', value('mapsApiKey', '')
+        manifestPlaceholders = [usesCleartextTraffic: value('useEmulators', 'true')]
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    buildTypes { release { minifyEnabled false } }
+    testOptions { unitTests.returnDefaultValues = true }
+    lint { abortOnError true; disable 'ExpiredTargetSdkVersion' }
 }
-
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.google.firebase:firebase-auth:10.0.1'
-    compile 'com.google.firebase:firebase-database:10.0.1'
-    compile 'com.google.firebase:firebase-messaging:10.0.1'
-    compile 'com.google.android.gms:play-services-maps:10.0.1'
-    compile 'com.google.android.gms:play-services-location:10.0.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'de.hdodenhof:circleimageview:2.0.0'
-    testCompile 'junit:junit:4.12'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
-
-
-
-
-
-
-
-
-
-
-apply plugin: 'com.google.gms.google-services'

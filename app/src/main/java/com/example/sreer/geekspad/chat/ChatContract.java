@@ -12,6 +12,7 @@ import com.example.sreer.geekspad.model.Chat;
 
 public interface ChatContract {
     interface View {
+        void onConversationReady();
         void onSendMessageSuccess();
 
         void onSendMessageFailure(String message);
@@ -40,6 +41,7 @@ public interface ChatContract {
     }
 
     interface OnGetMessagesListener {
+        void onConversationReady();
         void onGetMessagesSuccess(Chat chat);
 
         void onGetMessagesFailure(String message);

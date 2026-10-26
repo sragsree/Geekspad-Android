@@ -4,11 +4,11 @@ package com.example.sreer.geekspad.ui.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.Gravity;
@@ -65,6 +65,9 @@ public class HomePageActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) { startActivity(new Intent(this, LoginActivity.class)); finish(); return; }
+        com.example.sreer.geekspad.notifications.GeekspadMessagingService.registerToken();
+        if (!com.example.sreer.geekspad.BuildConfig.USE_EMULATORS && android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 12);
         setContentView(R.layout.activity_home_page);
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = manager.findFragmentById(R.id.detailFragment);
@@ -74,7 +77,7 @@ public class HomePageActivity extends AppCompatActivity{
         fragmentTransaction.commit();
 
         mBottomNav = (BottomNavigationView) findViewById(R.id.navigation);
-        mBottomNav.getMenu().getItem(1).setChecked(true);
+        mBottomNav.setSelectedItemId(R.id.menu_list);
         mBottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected( MenuItem item) {
@@ -95,28 +98,32 @@ public class HomePageActivity extends AppCompatActivity{
         switch (item.getItemId()) {
             case R.id.menu_home:
                 if(!(fragment instanceof ProfileViewFragment)) {
-                    mFilterMenuItem.setVisible(false);
+                    if (mFilterMenuItem != null) mFilterMenuItem.setVisible(false);
                     ProfileViewFragment userProfile = new ProfileViewFragment();
                     fragmentTransaction.replace(R.id.detailFragment, userProfile);
                 }
                     break;
             case R.id.menu_list:
                 if(!(fragment instanceof UsersListViewFragment)) {
-                    mFilterMenuItem.setVisible(true);
+                    if (mFilterMenuItem != null) mFilterMenuItem.setVisible(true);
                     usersList = new UsersListViewFragment();
                     fragmentTransaction.replace(R.id.detailFragment, usersList);
                 }
                      break;
             case R.id.menu_map:
                 if(!(fragment instanceof DisplayMapFragment)) {
-                    mFilterMenuItem.setVisible(true);
+                    if (mFilterMenuItem != null) mFilterMenuItem.setVisible(true);
                     usersMap = new DisplayMapFragment();
                     fragmentTransaction.replace(R.id.detailFragment, usersMap);
                 }
                 break;
+            case R.id.menu_events:
+                if (mFilterMenuItem != null) mFilterMenuItem.setVisible(false);
+                fragmentTransaction.replace(R.id.detailFragment, new com.example.sreer.geekspad.ui.fragment.EventsFragment());
+                break;
             case R.id.menu_chat:
                 if(!(fragment instanceof ChatUsersListFragment)) {
-                    mFilterMenuItem.setVisible(false);
+                    if (mFilterMenuItem != null) mFilterMenuItem.setVisible(false);
                     chatView = new ChatUsersListFragment();
                     fragmentTransaction.replace(R.id.detailFragment, chatView);
                 }
@@ -131,6 +138,8 @@ public class HomePageActivity extends AppCompatActivity{
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
         mFilterMenuItem = menu.findItem(R.id.filter);
+        int selected = mBottomNav.getSelectedItemId();
+        mFilterMenuItem.setVisible(selected == R.id.menu_list || selected == R.id.menu_map);
         return true;
     }
 
@@ -148,16 +157,15 @@ public class HomePageActivity extends AppCompatActivity{
         return true;
     }
 
-    @Override
-    public void onBackPressed(){
-        logout();
 
-    }
 
     public void logout(){
+        com.example.sreer.geekspad.notifications.GeekspadMessagingService.unregisterToken(() -> {
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
         startActivity(new Intent(this, LoginActivity.class)); //Go back to home page
         finish();
         Toast.makeText(this, "Logged Out Successfully" , Toast.LENGTH_LONG).show();
+        });
     }
 
     public void showPopup() {
@@ -302,6 +310,7 @@ public class HomePageActivity extends AppCompatActivity{
         country = (country != null && !country.toLowerCase().contains("select")) ? country : null;
         state = (state != null && !state.toLowerCase().contains("select")) ? state :null;
         skill = (skill != null && !skill.toLowerCase().contains("select")) ? skill : null;
+        if (skill == null) skill_level = null;
 
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = manager.findFragmentById(R.id.detailFragment);

@@ -8,6 +8,8 @@ import com.google.firebase.database.IgnoreExtraProperties;
 
 @IgnoreExtraProperties
 public class Chat {
+    public String senderUid;
+    public String receiverUid;
     public String sender;
     public String senderMail;
     public String receiver;
