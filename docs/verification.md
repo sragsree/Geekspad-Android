@@ -38,7 +38,7 @@ The final APK is `app/build/outputs/apk/debug/app-debug.apk`. SHA-256:
 
 Screenshots from the final installed APK: [people list](screenshots/people-emulator.png) and [Maps configuration state](screenshots/maps-configuration-state.png).
 
-Generated test reports are under `app/build/test-results/testDebugUnitTest/`, `app/build/outputs/androidTest-results/connected/debug/`, and `app/build/reports/`. These are ignored build output; rerun the documented commands to reproduce them. No successful remote GitHub Actions execution is claimed.
+Generated test reports are under `app/build/test-results/testDebugUnitTest/`, `app/build/outputs/androidTest-results/connected/debug/`, and `app/build/reports/`. These are ignored build output; rerun the documented commands to reproduce them. The first hosted run failed during SDK setup before any project checks: the action requested the removed Android `tools` package. The workflow now explicitly installs `platform-tools`, pins command-line tools 20.0, and applies the emulator action's documented Ubuntu KVM setup. A successful hosted rerun remains to be verified.
 
 ## Regressions found through device execution and review
 
